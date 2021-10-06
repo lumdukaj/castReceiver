@@ -9,145 +9,152 @@ class Receiver {
     this.playbackConfig = null;
     this.controls = null;
     this.hls = null;
-    this.videoObject = null;
+    this.videoObject = {};
+    this.videoContainer = this.video.parentElement;
   }
   start() {
     this.play();
   }
 
   play() {
+    // return this.playerManager.play();
     this.video
       .play()
-      .then(() => {
-        alert("playing");
-      })
+      .then(() => {})
       .catch(() => {});
   }
   attachMedia() {
-    vpPlayer.HLSsupported = Hls.isSupported();
+    vpReceiver.HLSsupported = Hls.isSupported();
+    this.castDebugLogger.debug("inside attach media", vpReceiver.HLSsupported);
     this.video.playbackRate = 1;
-
+    this.castDebugLogger.debug(
+      "video file",
+      JSON.stringify(this.video, ["id", "className", "tagName"])
+    );
     if (this.videoObject.file.endsWith("mp4")) {
+      this.castDebugLogger.debug("inside mp4", this.videoObject.file);
       this.video.src = this.videoObject.file;
       this.start();
-    } else if (vpPlayer.HLSsupported && !Utils.isIOS()) {
-      this.hls = new Hls(config);
-      this.hls.attachMedia(this.video);
+    } else if (vpReceiver.HLSsupported) {
+      this.castDebugLogger.debug("inside hlssupported", this.videoObject.file);
+      try {
+        this.hls = new Hls();
+        this.castDebugLogger.debug("hls initialized", this.videoObject.file);
+        this.hls.attachMedia(this.video);
+        this.castDebugLogger.debug("attached media", this.videoObject.file);
 
-      this.hls.on(Hls.Events.MEDIA_ATTACHED, () => {
-        this.hls.startLevel = this.videoObject.live
-          ? 0
-          : Utils.getStartLevel(this.videoObject.duration);
-        this.hls.loadSource(this.videoObject.file);
-        this.seekToLive = true;
-      });
-
-      this.hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
-        if (Utils.isSafari()) {
-          this.video.src = this.videoObject.file;
-          fps_drm.init(
-            this.video,
-            config.fpsCertificateUrl,
-            this.videoObject.assetId
+        this.hls.on(Hls.Events.MEDIA_ATTACHED, () => {
+          this.castDebugLogger.debug("amedia attached", this.videoObject.file);
+          this.hls.startLevel = 0;
+          this.castDebugLogger.debug(
+            "loading source hlssupported",
+            this.videoObject.file
           );
-        } else {
-          this.qualityLevels = this.hls.levels;
-        }
-        this.start();
-
-        this.hls.loadLevel =
-          this.config.quality != undefined
-            ? Math.min(this.config.quality, this.hls.levels.length - 1)
-            : -1;
-        this.seekToLive = true;
-      });
-
-      this.hls.on(Hls.Events.ERROR, (event, data) => {
-        if (data.details === "manifestLoadError") {
-          this.videoContainer.classList.add(cssClasses.effects.hideContent);
-          this.videoContainer.classList.add(cssClasses.effects.showError);
-        }
-
-        if (data.details === "manifestLoadTimeOut") {
-          this.videoContainer.classList.add(cssClasses.effects.hideContent);
-          this.videoContainer.classList.add(cssClasses.effects.showError);
-        }
-
-        if (data.details === "manifestParsingError") {
-          this.videoContainer.classList.add(cssClasses.effects.hideContent);
-          this.videoContainer.classList.add(cssClasses.effects.showError);
-        }
-
-        if (data.details === "levelLoadError") {
-          this.removeLevel(data.context.level);
-        }
-
-        if (data.details === "fragLoadError") {
-          this.fragErrorCount++;
-          // sn referes to sequence number
-          if (data.frag.sn == 0) this.failedToLoadFirstFragment = true;
-        }
-
-        if (this.levelHasMissingFragments()) {
-          this.fragErrorCount = 0;
-          this.removeLevel(data.frag.level);
-          this.hls.loadLevel = -1;
-          console.log("Network error encountered");
-        }
-
-        if (this.failedToLoadFirstFragment) {
-          this.failedToLoadFirstFragment = false;
-          this.removeLevel(data.frag.level);
-          this.hls.loadLevel = -1;
-          this.onPlay();
-          console.log("Network error encountered");
-        }
-
-        if (!data.fatal) {
-          return;
-        }
-
-        switch (data.type) {
-          case Hls.ErrorTypes.NETWORK_ERROR:
-            console.log("fatal network error encountered");
-            this.hls.startLoad();
-            break;
-          case Hls.ErrorTypes.MEDIA_ERROR:
-            console.log("fatal media error encountered");
-            this.hls.recoverMediaError();
-            break;
-          default:
-            this.hls.destroy();
-            break;
-        }
-      });
-    } else if (this.video.canPlayType("application/vnd.apple.mpegurl")) {
-      this.video.src = this.videoObject.file;
-      if (Utils.isIOS()) {
-        fps_drm.init(
-          this.video,
-          config.fpsCertificateUrl,
-          this.videoObject.assetId
-        );
+          this.hls.loadSource(this.videoObject.file);
+        });
+        this.hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
+          this.castDebugLogger.debug("manifest parsed", this.videoObject.file);
+          this.start();
+        });
+        this.hls.on(Hls.Events.ERROR, (event, data) => {
+          this.castDebugLogger.debug("HLS  ERROR", data.details);
+        });
+      } catch (error) {
+        this.castDebugLogger.debug("hls error", error);
       }
-      this.video.playsInline = true;
-      this.start();
+
+      // this.hls.on(Hls.Events.ERROR, (event, data) => {
+      //   if (data.details === "manifestLoadError") {
+      //     this.videoContainer.classList.add(cssClasses.effects.hideContent);
+      //     this.videoContainer.classList.add(cssClasses.effects.showError);
+      //   }
+
+      //   if (data.details === "manifestLoadTimeOut") {
+      //     this.videoContainer.classList.add(cssClasses.effects.hideContent);
+      //     this.videoContainer.classList.add(cssClasses.effects.showError);
+      //   }
+
+      //   if (data.details === "manifestParsingError") {
+      //     this.videoContainer.classList.add(cssClasses.effects.hideContent);
+      //     this.videoContainer.classList.add(cssClasses.effects.showError);
+      //   }
+
+      //   if (data.details === "levelLoadError") {
+      //     this.removeLevel(data.context.level);
+      //   }
+
+      //   if (data.details === "fragLoadError") {
+      //     this.fragErrorCount++;
+      //     // sn referes to sequence number
+      //     if (data.frag.sn == 0) this.failedToLoadFirstFragment = true;
+      //   }
+
+      //   if (this.levelHasMissingFragments()) {
+      //     this.fragErrorCount = 0;
+      //     this.removeLevel(data.frag.level);
+      //     this.hls.loadLevel = -1;
+      //     console.log("Network error encountered");
+      //   }
+
+      //   if (this.failedToLoadFirstFragment) {
+      //     this.failedToLoadFirstFragment = false;
+      //     this.removeLevel(data.frag.level);
+      //     this.hls.loadLevel = -1;
+      //     this.onPlay();
+      //     console.log("Network error encountered");
+      //   }
+
+      //   if (!data.fatal) {
+      //     return;
+      //   }
+
+      //   switch (data.type) {
+      //     case Hls.ErrorTypes.NETWORK_ERROR:
+      //       console.log("fatal network error encountered");
+      //       this.hls.startLoad();
+      //       break;
+      //     case Hls.ErrorTypes.MEDIA_ERROR:
+      //       console.log("fatal media error encountered");
+      //       this.hls.recoverMediaError();
+      //       break;
+      //     default:
+      //       this.hls.destroy();
+      //       break;
+      //   }
+      // });
     }
+    this.castDebugLogger.debug("finished attach media");
+    //  else if (this.video.canPlayType("application/vnd.apple.mpegurl")) {
+    //   this.video.src = this.videoObject.file;
+    //   if (Utils.isIOS()) {
+    //     fps_drm.init(
+    //       this.video,
+    //       config.fpsCertificateUrl,
+    //       this.videoObject.assetId
+    //     );
+    //   }
+    //   this.video.playsInline = true;
+    //   this.start();
+    // }
   }
   fakeinit() {
     const context = cast.framework.CastReceiverContext.getInstance();
     const playerManager = context.getPlayerManager();
+    // this.castDebugLogger = cast.debug.CastDebugLogger.getInstance();
+    this.videoObject.file =
+      "https://vp.gjirafa.net/vps/prod/odgehtyo/encode/vjsmylds/mp4/360p.mp4";
+    this.attachMedia();
     context.start();
   }
   init() {
+    // this.bindMethods();
     this.context = cast.framework.CastReceiverContext.getInstance();
     this.playerManager = this.context.getPlayerManager();
+    this.playerManager.setMediaElement(this.video);
     this.castDebugLogger = cast.debug.CastDebugLogger.getInstance();
+    // this.castDebugLogger.setEnabled(true);
     // this.playbackConfig.autoResumeDuration = 5;
-    // this.castDebugLogger.info(
-    //   LOG_RECEIVER_TAG,
-    //   `autoResumeDuration set to: ${playbackConfig.autoResumeDuration}`
-    // );
+    // this.castDebugLogger.info(LOG_RECEIVER_TAG, `autoinit: `);
     // this.controls.clearDefaultSlotAssignments();
     // this.drawButtons();
 
@@ -160,6 +167,13 @@ class Receiver {
     //     cast.framework.messages.Command.QUEUE_NEXT |
     //     cast.framework.messages.Command.STREAM_TRANSFER,
     // });
+    // this.bindInterceptors();
+    // this.videoObject.file =
+    //   "https://vp.gjirafa.net/vps/prod/odgehtyo/encode/vjsmylds/mp4/360p.mp4";
+    // this.attachMedia();
+    this.context.start();
+    this.bindMethods();
+    this.bindInterceptors();
   }
   drawButtons() {
     this.controls.assignButton(
@@ -182,41 +196,35 @@ class Receiver {
 
   bindInterceptors() {
     this.playerManager.setMessageInterceptor(
-      cast.framework.messages.MessageTyep.LOAD,
-      this.onLoadRequest
+      cast.framework.messages.MessageType.LOAD,
+      this.onLoadRequest.bind(this)
     );
   }
-  bindMethodd() {
+  bindMethods() {
     this.bindInterceptors = this.bindInterceptors.bind(this);
-    this.init = this.init.bind(this);
-    this.drawButtons = this.drawButtons.bind(this);
     this.onLoadRequest = this.onLoadRequest.bind(this);
     this.attachMedia = this.attachMedia.bind(this);
   }
   onLoadRequest(loadRequestData) {
-    castDebugLogger.debug(
-      LOG_RECEIVER_TAG,
-      `loadRequestData: ${JSON.stringify(loadRequestData)}`
-    );
-
     // If the loadRequestData is incomplete return an error message
-    if (!loadRequestData || !loadRequestData.media) {
-      const error = new cast.framework.messages.ErrorData(
-        cast.framework.messages.ErrorType.LOAD_FAILED
-      );
-      error.reason = cast.framework.messages.ErrorReason.INVALID_REQUEST;
-      return error;
-    }
+    // if (!loadRequestData || !loadRequestData.media) {
+    //   const error = new cast.framework.messages.ErrorData(
+    //     cast.framework.messages.ErrorType.LOAD_FAILED
+    //   );
+    //   error.reason = cast.framework.messages.ErrorReason.INVALID_REQUEST;
+    //   return error;
+    // }
 
-    // check all content source fields for asset URL or ID
-    let source =
-      loadRequestData.media.contentUrl ||
-      loadRequestData.media.entity ||
-      loadRequestData.media.contentId;
-
-    this.videoObject.file = source;
+    // // check all content source fields for asset URL or ID
+    // let source =
+    //   loadRequestData.media.contentUrl ||
+    //   loadRequestData.media.entity ||
+    //   loadRequestData.media.contentId;
+    this.castDebugLogger.debug("VPreceiver", loadRequestData.media.contentId);
+    this.castDebugLogger.debug("VPreceiver1", Hls.isSupported());
+    this.videoObject.file = loadRequestData.media.contentId;
     this.attachMedia();
-    return loadRequestData;
+    return null;
     // If there is no source or a malformed ID then return an error.
     if (!source || source == "" || !source.match(ID_REGEX)) {
       let error = new cast.framework.messages.ErrorData(

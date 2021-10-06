@@ -9,10 +9,19 @@
     <script src="//www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js"></script>
     <!-- Cast Debug Logger -->
     <script src="//www.gstatic.com/cast/sdk/libs/devtools/debug_layer/caf_receiver_logger.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.0.9/hls.js"
+        integrity="sha512-53LnxB94zS5atWaLdt3HDDYlW3mnsHAnxCzaAfyGv8RdWluzl8f8S7mcsF79PT5PjO/akkpZZO7kbtsvpGrj0g=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <link rel="stylesheet" href="./build/global.css">
 </head>
 
 <body>
-    <video id="video"></video>
+    <div class="video-container">
+        <video id="video" width="100%" height="100%"></video>
+        <div class="controls"></div>
+    </div>
+    <!-- src="https://vp.gjirafa.net/vps/prod/odgehtyo/encode/vjsmylds/mp4/360p.mp4" autoplay></video> -->
     <script src="./build/vpReceiver.js"></script>
     <script>
         vpReceiver("video", {
