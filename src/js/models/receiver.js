@@ -1,4 +1,5 @@
 import hlsconfig from "../config/hlsConfig";
+import ReceiverControls from "./receiver-controls";
 class Receiver {
   constructor(id, config) {
     this.context = null;
@@ -11,17 +12,34 @@ class Receiver {
     this.hls = null;
     this.videoObject = {};
     this.videoContainer = this.video.parentElement;
+    this.playbackRate = 1;
+    this.autoplay = false;
+    this.receiverControls = new ReceiverControls();
   }
   start() {
-    this.play();
+    this.receiverControls.seekbar.show = false;
+    this.receiverControls.seekbar.showHide(10);
+    this.onPlay();
   }
 
-  play() {
+  onPlay() {
     // return this.playerManager.play();
     this.video
       .play()
       .then(() => {})
       .catch(() => {});
+  }
+  onPause() {
+    this.video.pause();
+  }
+  addPlayerEvents() {
+    this.video.addEventListener("timeupdate", this.onTimeUpdate);
+  }
+  onTimeUpdate() {
+    this.receiverControls.seekbar.setProgress(
+      this.video.currentTime,
+      this.videoObject.duration
+    );
   }
   attachMedia() {
     vpReceiver.HLSsupported = Hls.isSupported();
@@ -149,10 +167,15 @@ class Receiver {
   init() {
     // this.bindMethods();
     this.context = cast.framework.CastReceiverContext.getInstance();
+
+    this.context.setLoggerLevel(cast.framework.LoggerLevel.DEBUG);
     this.playerManager = this.context.getPlayerManager();
     this.playerManager.setMediaElement(this.video);
     this.castDebugLogger = cast.debug.CastDebugLogger.getInstance();
-    // this.castDebugLogger.setEnabled(true);
+    this.castDebugLogger.setEnabled(true);
+    this.castDebugLogger.debug("hello", "okej");
+
+    this.receiverControls.setCastDebugger(this.castDebugLogger);
     // this.playbackConfig.autoResumeDuration = 5;
     // this.castDebugLogger.info(LOG_RECEIVER_TAG, `autoinit: `);
     // this.controls.clearDefaultSlotAssignments();
@@ -174,6 +197,7 @@ class Receiver {
     this.context.start();
     this.bindMethods();
     this.bindInterceptors();
+    this.addPlayerEvents();
   }
   drawButtons() {
     this.controls.assignButton(
@@ -199,11 +223,24 @@ class Receiver {
       cast.framework.messages.MessageType.LOAD,
       this.onLoadRequest.bind(this)
     );
+    this.playerManager.setMessageInterceptor(
+      cast.framework.messages.MessageType.PLAY,
+      this.onPlay.bind(this)
+    );
+    this.playerManager.setMessageInterceptor(
+      cast.framework.messages.MessageType.PAUSE,
+      this.onPause.bind(this)
+    );
   }
   bindMethods() {
     this.bindInterceptors = this.bindInterceptors.bind(this);
     this.onLoadRequest = this.onLoadRequest.bind(this);
     this.attachMedia = this.attachMedia.bind(this);
+    this.start = this.start.bind(this);
+    this.addPlayerEvents = this.addPlayerEvents.bind(this);
+    this.onTimeUpdate = this.onTimeUpdate.bind(this);
+    this.onPlay = this.onPlay.bind(this);
+    this.onPause = this.onPause.bind(this);
   }
   onLoadRequest(loadRequestData) {
     // If the loadRequestData is incomplete return an error message
@@ -223,6 +260,10 @@ class Receiver {
     this.castDebugLogger.debug("VPreceiver", loadRequestData.media.contentId);
     this.castDebugLogger.debug("VPreceiver1", Hls.isSupported());
     this.videoObject.file = loadRequestData.media.contentId;
+    this.videoObject.duration = loadRequestData.media.metadata.duration;
+    this.currentTime = loadRequestData.currentTime;
+    this.playbackRate = loadRequestData.playbackRate;
+    this.autoplay = loadRequestData.autoplay;
     this.attachMedia();
     return null;
     // If there is no source or a malformed ID then return an error.
