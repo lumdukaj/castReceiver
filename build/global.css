@@ -1,15 +1,94 @@
+.video-controls .loader {
+  font-size: 10px;
+  margin: 50px auto;
+  text-indent: -9999em;
+  width: 11em;
+  height: 11em;
+  border-radius: 50%;
+  background: #ffffff;
+  background: -moz-linear-gradient(left, #ffffff 10%, rgba(255, 255, 255, 0) 42%);
+  background: -webkit-linear-gradient(left, #ffffff 10%, rgba(255, 255, 255, 0) 42%);
+  background: -o-linear-gradient(left, #ffffff 10%, rgba(255, 255, 255, 0) 42%);
+  background: -ms-linear-gradient(left, #ffffff 10%, rgba(255, 255, 255, 0) 42%);
+  background: linear-gradient(to right, #ffffff 10%, rgba(255, 255, 255, 0) 42%);
+  position: relative;
+  -webkit-animation: load3 1.4s infinite linear;
+  animation: load3 1.4s infinite linear;
+  -webkit-transform: translateZ(0);
+  -ms-transform: translateZ(0);
+  transform: translateZ(0); }
+
+.video-controls .loader:before {
+  width: 50%;
+  height: 50%;
+  background: #ffffff;
+  border-radius: 100% 0 0 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  content: ""; }
+
+.video-controls .loader:after {
+  background: #0dc5c1;
+  width: 75%;
+  height: 75%;
+  border-radius: 50%;
+  content: "";
+  margin: auto;
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0; }
+
+@-webkit-keyframes load3 {
+  0% {
+    -webkit-transform: rotate(0deg);
+    transform: rotate(0deg); }
+  100% {
+    -webkit-transform: rotate(360deg);
+    transform: rotate(360deg); } }
+
+@keyframes load3 {
+  0% {
+    -webkit-transform: rotate(0deg);
+    transform: rotate(0deg); }
+  100% {
+    -webkit-transform: rotate(360deg);
+    transform: rotate(360deg); } }
+
 body {
   margin: 0;
   padding: 0;
-  border-color: blue; }
+  background-color: #000; }
   body .video-container {
     width: 100%;
     height: 100%;
-    background-color: aqua; }
-    body .video-container .controls {
-      min-height: 20px;
-      width: 100px;
-      z-index: 100;
-      position: relative;
-      bottom: 20px;
-      background-color: #e1dd; }
+    position: relative; }
+    body .video-container .seekbar {
+      width: calc(100% - 10px);
+      background-color: #bbc7c7;
+      min-height: 5px;
+      bottom: 10%;
+      z-index: 10000;
+      position: absolute;
+      left: 5px;
+      right: 5px;
+      border-top-left-radius: 3px;
+      border-bottom-left-radius: 3px;
+      border-top-right-radius: 3px;
+      border-bottom-right-radius: 3px; }
+      body .video-container .seekbar .seekbar-progress {
+        width: 10px;
+        background-color: #194694;
+        height: 0.5rem;
+        border-top-left-radius: 3px;
+        border-bottom-left-radius: 3px;
+        border-top-right-radius: 3px;
+        border-bottom-right-radius: 3px; }
+    body .video-container .timer {
+      color: white;
+      font-size: 15px;
+      text-align: center;
+      display: flex;
+      justify-content: center; }
