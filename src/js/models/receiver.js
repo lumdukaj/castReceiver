@@ -14,11 +14,11 @@ class Receiver {
     this.videoContainer = this.video.parentElement;
     this.playbackRate = 1;
     this.autoplay = false;
-    this.receiverControls = new ReceiverControls();
+    this.receiverControls = new ReceiverControls(".controls");
+    this.mediaManager = null;
+    this.castReceiverManager = null;
   }
   start() {
-    this.receiverControls.seekbar.show = false;
-    this.receiverControls.seekbar.showHide(10);
     this.onPlay();
   }
 
@@ -28,18 +28,23 @@ class Receiver {
       .play()
       .then(() => {})
       .catch(() => {});
+    this.receiverControls.hideControls(6000);
   }
   onPause() {
     this.video.pause();
+    this.receiverControls.showControls();
   }
   addPlayerEvents() {
     this.video.addEventListener("timeupdate", this.onTimeUpdate);
   }
   onTimeUpdate() {
-    this.receiverControls.seekbar.setProgress(
-      this.video.currentTime,
-      this.videoObject.duration
-    );
+    this.receiverControls.update(this.updatePlayerState());
+  }
+  updatePlayerState() {
+    return {
+      currentTime: this.video.currentTime,
+      duration: this.videoObject.duration,
+    };
   }
   attachMedia() {
     vpReceiver.HLSsupported = Hls.isSupported();
@@ -158,10 +163,18 @@ class Receiver {
   fakeinit() {
     const context = cast.framework.CastReceiverContext.getInstance();
     const playerManager = context.getPlayerManager();
-    // this.castDebugLogger = cast.debug.CastDebugLogger.getInstance();
+    this.castDebugLogger = {
+      debug: function (type, message) {
+        console.debug(type, message);
+      },
+    };
+    this.receiverControls.setCastDebugger(this.castDebugLogger);
     this.videoObject.file =
       "https://vp.gjirafa.net/vps/prod/odgehtyo/encode/vjsmylds/mp4/360p.mp4";
     this.attachMedia();
+    this.bindMethods();
+    // this.bindInterceptors();
+    this.addPlayerEvents();
     context.start();
   }
   init() {
@@ -171,6 +184,10 @@ class Receiver {
     this.context.setLoggerLevel(cast.framework.LoggerLevel.DEBUG);
     this.playerManager = this.context.getPlayerManager();
     this.playerManager.setMediaElement(this.video);
+    // this.castReceiverManager = cast.receiver.CastReceiverManager.getInstance();
+    // this.mediaManager = new cast.receiver.MediaManager(this.video);
+
+    // this.mediaManager.onSeek = this.onSeek.bind(this);
     this.castDebugLogger = cast.debug.CastDebugLogger.getInstance();
     this.castDebugLogger.setEnabled(true);
     this.castDebugLogger.debug("hello", "okej");
@@ -198,6 +215,11 @@ class Receiver {
     this.bindMethods();
     this.bindInterceptors();
     this.addPlayerEvents();
+  }
+  onSeek(event) {
+    var currentTime = event.data.currentTime;
+    this.video.currentTime = currentTime;
+    this.receiverControls.update(this.updatePlayerState());
   }
   drawButtons() {
     this.controls.assignButton(
@@ -241,6 +263,7 @@ class Receiver {
     this.onTimeUpdate = this.onTimeUpdate.bind(this);
     this.onPlay = this.onPlay.bind(this);
     this.onPause = this.onPause.bind(this);
+    this.updatePlayerState = this.updatePlayerState.bind(this);
   }
   onLoadRequest(loadRequestData) {
     // If the loadRequestData is incomplete return an error message

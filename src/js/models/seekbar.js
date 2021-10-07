@@ -8,10 +8,9 @@ class SeekBar {
     this.castdebugger = castdebugger;
   }
   setProgress(time, duration) {
-    this.castdebugger.debug("ele", JSON.stringify(this.element));
+    // this.castdebugger.debug("ele", JSON.stringify(this.element));
     this.element.style.width = (time / duration) * 100 + "%";
-    this.element.style.backgroundColor = "#fff";
-    this.castdebugger.debug("width", this.element.style.width);
+    // this.castdebugger.debug("width", this.element.style.width);
   }
 
   showHide(timing) {

@@ -4,9 +4,9 @@ import Receiver from "./models/receiver";
 vpReceiver.HLSsupported = false;
 
 function vpReceiver(id, config) {
-  const receiver = new Receiver(id, config);
-
+  let receiver = new Receiver(id, config);
   receiver.init();
+  return receiver;
 }
 
 window.vpReceiver = vpReceiver;
