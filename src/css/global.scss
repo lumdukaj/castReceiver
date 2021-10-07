@@ -1,6 +1,7 @@
 @import "./mixins.scss";
 @import "./variables.scss";
 @import "./_controls.scss";
+@import "./fonts//icons.scss";
 body {
   margin: 0;
   padding: 0;
@@ -14,12 +15,16 @@ body {
       z-index: 10000;
       width: 100%;
       position: absolute;
+      bottom: 1rem;
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
       .seekbar {
         width: calc(100% - 10px);
         background-color: $seekbar;
         min-height: 5px;
         bottom: 10%;
-        position: absolute;
         left: 5px;
         right: 5px;
         @include seekbar-borders(3px);
@@ -32,14 +37,31 @@ body {
         }
       }
       .timer {
-        background-color: red;
-        position: absolute;
+        margin: 10px 0;
+        width: max-content;
         color: white;
         font-size: 15px;
         text-align: center;
-        display: flex;
-        justify-content: center;
       }
+    }
+  }
+
+  .icons {
+    min-height: 10px;
+    color: white;
+    font-size: 16px;
+    position: absolute;
+    z-index: 100;
+    position: absolute;
+    top: 60%;
+    right: 50%;
+    transform: translate(50%, -50%);
+    font-size: 5rem;
+    .vp-icon-play {
+      display: none;
+    }
+    .vp-icon-pause {
+      display: none;
     }
   }
 }

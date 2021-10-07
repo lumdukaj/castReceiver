@@ -18,16 +18,22 @@
 
 <body>
     <div class="video-container">
-        <video id="video" width="100%" height="100%"></video>
+        <!-- <video src="https://vp.gjirafa.net/vps/prod/odgehtyo/encode/vjsmylds/mp4/360p.mp4" width="100%" height="100%"
+            autoplay></video> -->
+        <video id="video" ` width="100%" height="100%"></video>
         <div class="controls">
             <div class="seekbar">
                 <div class="seekbar-progress"></div>
             </div>
-            <div class="timer">100234123</div>
-            <!-- <div class="loader"></div> -->
+            <div class="timer"></div>
+        </div>
+        <div class="loader"></div>
+        <div class="icons">
+            <div class="vp-icon-pause"></div>
+            <div class="vp-icon-play"></div>
         </div>
     </div>
-    <!-- src="https://vp.gjirafa.net/vps/prod/odgehtyo/encode/vjsmylds/mp4/360p.mp4" autoplay></video> -->
+
     <script src="./build/vpReceiver.js"></script>
     <script>
         var receiver = vpReceiver("video", {

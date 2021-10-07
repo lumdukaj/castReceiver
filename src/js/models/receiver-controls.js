@@ -7,14 +7,31 @@ class ReceiverControls {
     this.castDebugger = null;
     this.element = document.querySelector(id);
     this.show = true;
+    this.loader = document.querySelector(".loader");
+    this.playIcon = document.querySelector(".vp-icon-play");
+    this.pauseIcon = document.querySelector(".vp-icon-pause");
   }
   setCastDebugger(castDebugger) {
     this.castDebugger = castDebugger;
     this.seekbar.setCastDebugger(this.castDebugger);
   }
+  pause() {
+    this.pauseIcon.style.display = "none";
+    this.playIcon.style.display = "block";
+    setTimeout(() => {
+      this.playIcon.style.display = "none";
+    }, 2000);
+  }
+  play() {
+    this.playIcon.style.display = "none";
+    this.pauseIcon.style.display = "block";
+    setTimeout(() => {
+      this.pauseIcon.style.display = "none";
+    }, 2000);
+  }
   update(state) {
-    this.seekbar.setProgress(state.currenTtime, state.duration);
-    this.timer.update(state.currenTtime, state.duration);
+    this.seekbar.setProgress(state.currentTime, state.duration);
+    this.timer.update(state.currentTime, state.duration);
   }
   hideControls(time) {
     this.show = false;
@@ -27,7 +44,7 @@ class ReceiverControls {
   showHide(timing) {
     // this.castdebugger.debug("showHide", `${timing} ${this.show}`);
     if (this.show) {
-      this.element.style.display = "block";
+      this.element.style.display = "flex";
     } else {
       setTimeout(() => {
         this.element.style.display = "none";

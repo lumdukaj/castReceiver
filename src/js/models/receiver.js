@@ -17,8 +17,10 @@ class Receiver {
     this.receiverControls = new ReceiverControls(".controls");
     this.mediaManager = null;
     this.castReceiverManager = null;
+    this.videoStarted = false;
   }
   start() {
+    this.receiverControls.loader.style.display = "none";
     this.onPlay();
   }
 
@@ -26,12 +28,20 @@ class Receiver {
     // return this.playerManager.play();
     this.video
       .play()
-      .then(() => {})
+      .then(() => {
+        if (!this.videoStarted) {
+          this.receiverControls.showControls();
+          this.videoStarted = true;
+        } else {
+          this.receiverControls.play();
+        }
+        this.receiverControls.hideControls(6000);
+      })
       .catch(() => {});
-    this.receiverControls.hideControls(6000);
   }
   onPause() {
     this.video.pause();
+    this.receiverControls.pause();
     this.receiverControls.showControls();
   }
   addPlayerEvents() {
@@ -63,6 +73,7 @@ class Receiver {
       try {
         this.hls = new Hls();
         this.castDebugLogger.debug("hls initialized", this.videoObject.file);
+        if (this.currentTime > 0) this.video.currentTime = this.currentTime;
         this.hls.attachMedia(this.video);
         this.castDebugLogger.debug("attached media", this.videoObject.file);
 
@@ -178,16 +189,11 @@ class Receiver {
     context.start();
   }
   init() {
-    // this.bindMethods();
     this.context = cast.framework.CastReceiverContext.getInstance();
 
     this.context.setLoggerLevel(cast.framework.LoggerLevel.DEBUG);
     this.playerManager = this.context.getPlayerManager();
     this.playerManager.setMediaElement(this.video);
-    // this.castReceiverManager = cast.receiver.CastReceiverManager.getInstance();
-    // this.mediaManager = new cast.receiver.MediaManager(this.video);
-
-    // this.mediaManager.onSeek = this.onSeek.bind(this);
     this.castDebugLogger = cast.debug.CastDebugLogger.getInstance();
     this.castDebugLogger.setEnabled(true);
     this.castDebugLogger.debug("hello", "okej");
@@ -216,9 +222,11 @@ class Receiver {
     this.bindInterceptors();
     this.addPlayerEvents();
   }
-  onSeek(event) {
-    var currentTime = event.data.currentTime;
-    this.video.currentTime = currentTime;
+  onSeek(requestData) {
+    this.video.currentTime = requestData.currentTime;
+    this.receiverControls.showControls();
+    this.receiverControls.hideControls(6000);
+
     this.receiverControls.update(this.updatePlayerState());
   }
   drawButtons() {
@@ -252,6 +260,10 @@ class Receiver {
     this.playerManager.setMessageInterceptor(
       cast.framework.messages.MessageType.PAUSE,
       this.onPause.bind(this)
+    );
+    this.playerManager.setMessageInterceptor(
+      cast.framework.messages.MessageType.SEEK,
+      this.onSeek.bind(this)
     );
   }
   bindMethods() {
