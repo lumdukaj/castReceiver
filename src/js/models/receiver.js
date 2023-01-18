@@ -6,18 +6,18 @@ class Receiver {
     this.playerManager = null;
     this.castDebugLogger = null;
     this.appId = config.appId;
-    this.video = document.querySelector(id);
+    this.audio = document.querySelector(id);
     this.playbackConfig = null;
     this.controls = null;
     this.hls = null;
-    this.videoObject = {};
-    this.videoContainer = this.video.parentElement;
+    this.audioObject = {};
+    this.audioContainer = this.audio.parentElement;
     this.playbackRate = 1;
     this.autoplay = false;
     this.receiverControls = new ReceiverControls(".controls");
     this.mediaManager = null;
     this.castReceiverManager = null;
-    this.videoStarted = false;
+    this.audioStarted = false;
   }
   start() {
     this.receiverControls.loader.style.display = "none";
@@ -26,12 +26,12 @@ class Receiver {
 
   onPlay() {
     // return this.playerManager.play();
-    this.video
+    this.audio
       .play()
       .then(() => {
-        if (!this.videoStarted) {
+        if (!this.audioStarted) {
           this.receiverControls.showControls();
-          this.videoStarted = true;
+          this.audioStarted = true;
         } else {
           this.receiverControls.play();
         }
@@ -40,54 +40,54 @@ class Receiver {
       .catch(() => {});
   }
   onPause() {
-    this.video.pause();
+    this.audio.pause();
     this.receiverControls.pause();
     this.receiverControls.showControls();
   }
   addPlayerEvents() {
-    this.video.addEventListener("timeupdate", this.onTimeUpdate);
+    this.audio.addEventListener("timeupdate", this.onTimeUpdate);
   }
   onTimeUpdate() {
     this.receiverControls.update(this.updatePlayerState());
   }
   updatePlayerState() {
     return {
-      currentTime: this.video.currentTime,
-      duration: this.videoObject.duration,
+      currentTime: this.audio.currentTime,
+      duration: this.audioObject.duration,
     };
   }
   attachMedia() {
     vpReceiver.HLSsupported = Hls.isSupported();
     this.castDebugLogger.debug("inside attach media", vpReceiver.HLSsupported);
-    this.video.playbackRate = 1;
+    this.audio.playbackRate = 1;
     this.castDebugLogger.debug(
-      "video file",
-      JSON.stringify(this.video, ["id", "className", "tagName"])
+      "audio file",
+      JSON.stringify(this.audio, ["id", "className", "tagName"])
     );
-    if (this.videoObject.file.endsWith("mp4")) {
-      this.castDebugLogger.debug("inside mp4", this.videoObject.file);
-      this.video.src = this.videoObject.file;
+    if (this.audioObject.file.endsWith("mp3")) {
+      this.castDebugLogger.debug("inside mp3", this.audioObject.file);
+      this.audio.src = this.audioObject.file;
       this.start();
     } else if (vpReceiver.HLSsupported) {
-      this.castDebugLogger.debug("inside hlssupported", this.videoObject.file);
+      this.castDebugLogger.debug("inside hlssupported", this.audioObject.file);
       try {
         this.hls = new Hls();
-        this.castDebugLogger.debug("hls initialized", this.videoObject.file);
-        if (this.currentTime > 0) this.video.currentTime = this.currentTime;
-        this.hls.attachMedia(this.video);
-        this.castDebugLogger.debug("attached media", this.videoObject.file);
+        this.castDebugLogger.debug("hls initialized", this.audioObject.file);
+        if (this.currentTime > 0) this.audio.currentTime = this.currentTime;
+        this.hls.attachMedia(this.audio);
+        this.castDebugLogger.debug("attached media", this.audioObject.file);
 
         this.hls.on(Hls.Events.MEDIA_ATTACHED, () => {
-          this.castDebugLogger.debug("amedia attached", this.videoObject.file);
+          this.castDebugLogger.debug("amedia attached", this.audioObject.file);
           this.hls.startLevel = 0;
           this.castDebugLogger.debug(
             "loading source hlssupported",
-            this.videoObject.file
+            this.audioObject.file
           );
-          this.hls.loadSource(this.videoObject.file);
+          this.hls.loadSource(this.audioObject.file);
         });
         this.hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
-          this.castDebugLogger.debug("manifest parsed", this.videoObject.file);
+          this.castDebugLogger.debug("manifest parsed", this.audioObject.file);
           this.start();
         });
         this.hls.on(Hls.Events.ERROR, (event, data) => {
@@ -99,18 +99,18 @@ class Receiver {
 
       // this.hls.on(Hls.Events.ERROR, (event, data) => {
       //   if (data.details === "manifestLoadError") {
-      //     this.videoContainer.classList.add(cssClasses.effects.hideContent);
-      //     this.videoContainer.classList.add(cssClasses.effects.showError);
+      //     this.audioContainer.classList.add(cssClasses.effects.hideContent);
+      //     this.audioContainer.classList.add(cssClasses.effects.showError);
       //   }
 
       //   if (data.details === "manifestLoadTimeOut") {
-      //     this.videoContainer.classList.add(cssClasses.effects.hideContent);
-      //     this.videoContainer.classList.add(cssClasses.effects.showError);
+      //     this.audioContainer.classList.add(cssClasses.effects.hideContent);
+      //     this.audioContainer.classList.add(cssClasses.effects.showError);
       //   }
 
       //   if (data.details === "manifestParsingError") {
-      //     this.videoContainer.classList.add(cssClasses.effects.hideContent);
-      //     this.videoContainer.classList.add(cssClasses.effects.showError);
+      //     this.audioContainer.classList.add(cssClasses.effects.hideContent);
+      //     this.audioContainer.classList.add(cssClasses.effects.showError);
       //   }
 
       //   if (data.details === "levelLoadError") {
@@ -158,16 +158,16 @@ class Receiver {
       // });
     }
     this.castDebugLogger.debug("finished attach media");
-    //  else if (this.video.canPlayType("application/vnd.apple.mpegurl")) {
-    //   this.video.src = this.videoObject.file;
+    //  else if (this.audio.canPlayType("application/vnd.apple.mpegurl")) {
+    //   this.audio.src = this.audioObject.file;
     //   if (Utils.isIOS()) {
     //     fps_drm.init(
-    //       this.video,
+    //       this.audio,
     //       config.fpsCertificateUrl,
-    //       this.videoObject.assetId
+    //       this.audioObject.assetId
     //     );
     //   }
-    //   this.video.playsInline = true;
+    //   this.audio.playsInline = true;
     //   this.start();
     // }
   }
@@ -180,8 +180,8 @@ class Receiver {
       },
     };
     this.receiverControls.setCastDebugger(this.castDebugLogger);
-    this.videoObject.file =
-      "https://vp.gjirafa.net/vps/prod/odgehtyo/encode/vjsmylds/mp4/360p.mp4";
+    this.audioObject.file =
+      "https://vp.gjirafa.net/vps/prod/odgehtyo/encode/vjsmylds/mp3/360p.mp3";
     this.attachMedia();
     this.bindMethods();
     // this.bindInterceptors();
@@ -193,7 +193,7 @@ class Receiver {
 
     this.context.setLoggerLevel(cast.framework.LoggerLevel.DEBUG);
     this.playerManager = this.context.getPlayerManager();
-    this.playerManager.setMediaElement(this.video);
+    this.playerManager.setMediaElement(this.audio);
     this.castDebugLogger = cast.debug.CastDebugLogger.getInstance();
     this.castDebugLogger.setEnabled(true);
     this.castDebugLogger.debug("hello", "okej");
@@ -214,8 +214,8 @@ class Receiver {
     //     cast.framework.messages.Command.STREAM_TRANSFER,
     // });
     // this.bindInterceptors();
-    // this.videoObject.file =
-    //   "https://vp.gjirafa.net/vps/prod/odgehtyo/encode/vjsmylds/mp4/360p.mp4";
+    // this.audioObject.file =
+    //   "https://vp.gjirafa.net/vps/prod/odgehtyo/encode/vjsmylds/mp3/360p.mp3";
     // this.attachMedia();
     this.context.start();
     this.bindMethods();
@@ -223,7 +223,7 @@ class Receiver {
     this.addPlayerEvents();
   }
   onSeek(requestData) {
-    this.video.currentTime = requestData.currentTime;
+    this.audio.currentTime = requestData.currentTime;
     this.receiverControls.showControls();
     this.receiverControls.hideControls(6000);
 
@@ -294,8 +294,8 @@ class Receiver {
     //   loadRequestData.media.contentId;
     this.castDebugLogger.debug("VPreceiver", loadRequestData.media.contentId);
     this.castDebugLogger.debug("VPreceiver1", Hls.isSupported());
-    this.videoObject.file = loadRequestData.media.contentId;
-    this.videoObject.duration = loadRequestData.media.metadata.duration;
+    this.audioObject.file = loadRequestData.media.contentId;
+    this.audioObject.duration = loadRequestData.media.metadata.duration;
     this.currentTime = loadRequestData.currentTime;
     this.playbackRate = loadRequestData.playbackRate;
     this.autoplay = loadRequestData.autoplay;

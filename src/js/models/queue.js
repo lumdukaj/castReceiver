@@ -24,7 +24,7 @@ class Queue extends cast.framework.QueueBase {
     // Return sample content.
     let item = new cast.framework.messages.QueueItem();
     item.media = new cast.framework.messages.MediaInformation();
-    item.media.entity = "https://sample.com/videos/bbb";
+    item.media.entity = "https://sample.com/audios/bbb";
     item.media.customData = { isSuggested: true };
     return [item];
   }
@@ -32,7 +32,7 @@ class Queue extends cast.framework.QueueBase {
     // Return sample content.
     let item = new cast.framework.messages.QueueItem();
     item.media = new cast.framework.messages.MediaInformation();
-    item.media.entity = "https://sample.com/videos/ed";
+    item.media.entity = "https://sample.com/audios/ed";
     item.media.customData = { isSuggested: true };
     return [item];
   }
